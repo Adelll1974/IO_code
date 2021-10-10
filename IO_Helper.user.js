@@ -1,13 +1,15 @@
-﻿// ==UserScript==
+// ==UserScript==
 // @name        IO_Helper
 // @namespace   io_helper
 // @description Imperia Online game helper.
-// @include     http://www*.imperiaonline.org/imperia/game_v6/game/village.php*
+// @match        https://*.imperiaonline.org/imperia/game_v6/game/village.php
 // @require     http://code.jquery.com/jquery-2.1.3.min.js
 // @require     https://cdnjs.cloudflare.com/ajax/libs/later/1.2.0/later.min.js
-// @require     https://greasyfork.org/scripts/5392-waitforkeyelements/code/WaitForKeyElements.js
+
+// @require     https://greasyfork.org/scripts/2199-waitforkeyelements/code/waitForKeyElements.js
 // @require     https://greasyfork.org/scripts/5279-greasemonkey-supervalues/code/GreaseMonkey_SuperValues.js
-// @resource 	ioh-html https://raw.githubusercontent.com/panayot-zhi/IO_Helper/master/ioh-main.html
+
+// @resource 	ioh-html https://cdn.rawgit.com/CZMilka/IO_Helper/blob/master/ioh-main.html
 // @resource 	ioh-style https://raw.githubusercontent.com/panayot-zhi/IO_Helper/master/ioh-style.css
 // @version     1.9
 // @grant       GM_getValue
@@ -18,16 +20,28 @@
 // @grant       unsafeWindow
 // ==/UserScript==
 
+'use strict';
+/* global $ */
+
+// @resource 	ioh-html https://raw.githubusercontent.com/panayot-zhi/IO_Helper/master/ioh-main.html
+
+if (window.jQuery) { //проверка загрузки jQuery
+
+	$(document).ready(function () { //проверка готовности DOM на Jquery
+    
+
 var $ = this.$ = this.jQuery = jQuery.noConflict(true);
 var unsafeWindow = unsafeWindow || console.error("Imperia Online Helper: This script requires access to the unsafeWindow.");
 var GM_getValue = GM_getValue || console.error("Imperia Online Helper: This script requires access to the GM_getValue function.");
 var GM_setValue = GM_setValue || console.error("Imperia Online Helper: This script requires access to the GM_setValue function.");
 var GM_SuperValue = GM_SuperValue || console.error("Imperia Online Helper: This script requires access to the GM_SuperValue extension function.");
 var GM_xmlhttpRequest = GM_xmlhttpRequest || console.error("Imperia Online Helper: This script requires access to the GM_xmlhttpRequest.");
+//var GM_getResourceText = GM_getResourceText || console.error("Imperia Online Helper: This script requires access to the GM_getResourceText function.", "Greasemonkey");
+//var GM_registerMenuCommand = GM_registerMenuCommand || console.error("Imperia Online Helper: This script requires access to the GM_registerMenuCommand function.", "Greasemonkey");
 var GM_getResourceText = GM_getResourceText || console.error("Imperia Online Helper: This script requires access to the GM_getResourceText function.", "Greasemonkey");
 var GM_registerMenuCommand = GM_registerMenuCommand || console.error("Imperia Online Helper: This script requires access to the GM_registerMenuCommand function.", "Greasemonkey");
 
-// TODO: Extract variables from localStorage here
+// TODO: Извлчение переменных из localStorage
 var debugMode = false;
 
 var DB = {
@@ -36,11 +50,11 @@ var DB = {
         $('#widget-navigation #fast-provinces .ui-location.ui-vassals').each(function (i, item) {
             var regExp = /\{provinceId:\d+}/;
             var extractedStrings = regExp.exec(item.href);
-            if (extractedStrings.length > 1) throw "More than one province ID's found with regular expression!";
+            if (extractedStrings.length > 1) throw "Найдено более одной провинции с регулярным выражением!";
             var provinceId = eval(extractedStrings[0]);
             if (vassals.indexOf(provinceId) < 0) {
                 vassals.push(provinceId);
-                log("A new vassal was recorded.")
+                log("Новый вассал был записан .")
             }
         });
 
@@ -77,7 +91,7 @@ var inject = {
             }
 
         } catch(ex) {
-            log("Exception has been caught:");
+            log("Обнаружено исключение:");
             console.error(ex);
         }
     },
@@ -104,7 +118,7 @@ var inject = {
         style.innerHTML = css;
         document.head.appendChild(style);
 
-        log("Style injected successfully.");
+        log("Стиль успешно подключен.");
     },
 
     script: function (code) {
@@ -114,7 +128,7 @@ var inject = {
         script.innerHTML = code;
         document.head.appendChild(script);
 
-        log("Code injected successfully.");
+        log("Код успешно подключен.");
     }
 };
 
@@ -143,13 +157,13 @@ function enWrap(fn) {
     try {
         return fn.apply(this, fn.arguments);
     } catch (ex) {
-        log("Exception has been caught:");
+        log("Обнаружено исключение:");
         console.error(ex);
     }
 }
 
 function addListener(selector, fn) {
-    if (!fn || typeof fn != "function") return; // no listener
+    if (!fn || typeof fn != "function") return; // нет слушателя
 
     $('body').on('click', selector, function(e) {
 
@@ -158,7 +172,7 @@ function addListener(selector, fn) {
         try {
             fn(e);
         } catch (ex) {
-            log("Exception has been caught:");
+            log("Обнаружено исключение:");
             console.error(ex);
         }
 
@@ -167,22 +181,20 @@ function addListener(selector, fn) {
 
 // will fire every 5 minutes
 /*var textSchedule = later.parse.text('every 1 min');
-
  // execute logTime for each successive occurrence of the text schedule
  var timer = later.setInterval(logTime, textSchedule);
-
  // function to execute
  function logTime() {
  var txt = GM_getResourceText("dialog");
  }*/
 
-// --> Handlers
+// --> Обработчики
 function showMainIOH(e) {
     e.preventDefault();
 
     unsafeWindow.container.open(inject.object({
         saveName: "ioh",
-        title: "Hello you little rebel",
+        title: "Привет ты маленький бунтарь",
         position: "center;top"
     }));
 
@@ -207,33 +219,33 @@ function showTabMenu(e){
 
     $("#ioh-content").find("div.content").hide();
     var tabContent = $('#' + tab + '-content.content');
-    if(!tabContent.length) warn('No content for the target tab was found!');
+    if(!tabContent.length) warn('Контент для целевой вкладки не найден!');
     tabContent.show();
 }
 
 function run() {
 
     /*
-    * Inject button
-    * at the bottom
-    * right menu
+    * Кнопка ввода
+    * внизу
+    * правое меню
     * */
     inject.main();
     inject.allStyles();
 
-    // will fire every 5 minutes
+    // срабатывает каждые 5 минут
     var textSchedule = later.parse.text('every 1 min');
 
-     // execute logTime for each successive occurrence of the text schedule
+     // выполнять logTime для каждого последующего появления текстового расписания
      var timer = later.setInterval(collectFromVassals, textSchedule);
 
-     // function to execute
+     // функция для выполнения
      function collectFromVassals() {
          //unsafeWindow.xajax_doCollectVassalGold(false, {provinceId: 8751, allVassal: true})
      }
 
     /*
-    * Add event handlers this way, so they can be wrapped in error handling functions
+    * Таким образом добавьте обработчики событий, чтобы их можно было обернуть функциями обработки ошибок.
     * */
     addListener('div#messageboxioh.window-content ul.window-tabs li.ui-ib.ioh', showTabMenu);
     addListener('div.ui-bottom-right.ui div#widget-ioh-main div.ui-bg.ui-buttons a.ui-icon.ioh-main', showMainIOH);
@@ -245,13 +257,13 @@ function run() {
 (function initialize() {
     var loading = $("div#imperia").hasClass("hide-widget");
     if (!loading) {
-        console.clear();
+        console.clear();//очистка консоли
 
-        log("Done!");
+        log("Инициализация выполнена!");
         enWrap(run);
 
     } else {
-        log("Loading...");
+        log("Загрузка...");
         setTimeout(initialize, 1000);
     }
 })();
@@ -349,3 +361,5 @@ function xajax_submitRequest(e) {
     ], "onRequest", e), e.open(), e.applyRequestHeaders(), e.cursor.onWaiting(), e.status.onWaiting(), xajax._internalSend(e), e.finishRequest()
 }
 
+	});
+}
